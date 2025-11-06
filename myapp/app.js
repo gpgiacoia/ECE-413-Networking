@@ -16,17 +16,21 @@ app.set('view engine', 'pug');
 
 // This is to enable cross-origin access
 app.use(function (req, res, next) {
-   // Website you wish to allow to connect
-   res.setHeader('Access-Control-Allow-Origin', '*');
-   // Request methods you wish to allow
-   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-   // Request headers you wish to allow
-   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-   // Set to true if you need the website to include cookies in the requests sent
-   // to the API (e.g. in case you use sessions)
-   res.setHeader('Access-Control-Allow-Credentials', true);
-   // Pass to next layer of middleware
-   next();
+  // Website you wish to allow to connect
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Request methods you wish to allow
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  // Request headers you wish to allow
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Content-Type,Accept');
+  // Set to true if you need the website to include cookies in the requests sent
+  // to the API (e.g. in case you use sessions)
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  // Short-circuit preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  // Pass to next layer of middleware
+  next();
 });
 
 app.use(logger('dev'));
@@ -83,6 +87,10 @@ app.post('/lab/register', async (req, res) => {
   }
   const zipNum = Number(zip);
   const aqNum = Number(airQuality);
+  if (Number.isNaN(zipNum) || Number.isNaN(aqNum)) {
+    var errormsg = { "error": "zip and airQuality are required." };
+    return res.status(400).json(errormsg);
+  }
   // Accept numeric strings; if not numeric, still treat as provided per spec
   try {
     const rec = new Recording({ zip: zipNum, airQuality: aqNum });
